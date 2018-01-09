@@ -1,0 +1,18 @@
+{
+  "name": "oc-vaadin-grid",
+  "description": "Basic Vaadin grid accepting data, and have the option of having filters",
+  "main": "oc-vaadin-grid.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "vaadin-grid": "^4.1.0",
+    "vaadin-valo-theme": "^0.3.2"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  }
+}

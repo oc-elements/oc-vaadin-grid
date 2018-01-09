@@ -1,0 +1,100 @@
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+<link rel="import" href="/bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="/bower_components/vaadin-grid/vaadin-grid-column-group.html">s
+<link rel="import" href="/bower_components/vaadin-grid/vaadin-grid-filter.html">
+<link rel="import" href="/bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import" href="/bower_components/vaadin-valo-theme/vaadin-grid.html">>
+
+<dom-module id="oc-vaadin-grid">
+    <template>
+        <style>
+            vaadin-grid {
+                height: auto;
+            }
+        </style>
+        <template is="dom-if" if="{{!_isDataObjectEmpty}}">
+            <vaadin-grid theme="row-stripes column-dividers" class="my-grid" items="[[dataObject]]">
+                <vaadin-grid-column width="50px" flex-grow="0">
+                    <template class="header">#</template>
+                    <template>[[index]]</template>
+                </vaadin-grid-column>
+                <template is="dom-repeat" items="[[_columns]]" as="column">
+                    <vaadin-grid-column-group>
+                        <template is="dom-if" if="[[showFilters]]">
+                            <template class="header">
+                                <vaadin-grid-filter aria-label="[[column.name]]" path="[[column.key]]"
+                                                    value="[[column.filter]]">
+                                    <input placeholder="Filter" slot="filter" value="{{column.filter::input}}"
+                                           focus-target>
+                                </vaadin-grid-filter>
+                            </template>
+                        </template>
+                        <vaadin-grid-column>
+                            <template class="header">
+                                <vaadin-grid-sorter path="[[column.key]]">
+                                    [[column.name]]
+                                </vaadin-grid-sorter>
+                            </template>
+                            <template>[[get(column.key, item)]]</template>
+                        </vaadin-grid-column>
+                    </vaadin-grid-column-group>
+                </template>
+            </vaadin-grid>
+        </template>
+    </template>
+    <script>
+		class OcVaadinGrid extends Polymer.Element {
+			static get is() {
+				return 'oc-vaadin-grid'
+			}
+
+			static get properties() {
+				return {
+					dataObject: {
+						type: Array,
+						value: [],
+						observer: '_setColumns',
+					},
+					showFilters: {
+						type: Boolean,
+						value: true,
+					},
+					_columns: {
+						type: Array,
+						value: [],
+					},
+					_isDataObjectEmpty: {
+						type: Boolean,
+						value: true,
+					}
+				}
+			}
+
+			ready() {
+				super.ready();
+			}
+
+			_camelCaseToString(text) {
+				const result = text.replace(/([A-Z])/g, " $1");
+				return result.charAt(0).toUpperCase() + result.slice(1);
+			}
+
+			_setColumns(dataObject) {
+				// We can assume all object items has identical keys
+				const dataItem = dataObject[0];
+				if (!dataItem) {
+					this._isDataObjectEmpty = true;
+					return;
+				}
+				this._isDataObjectEmpty = false;
+				this._columns = Object.keys(dataItem).map(key => ({
+					key: key,
+					name: this._camelCaseToString(key),
+					filter: ""
+				}));
+			}
+		}
+
+		window.customElements.define(OcVaadinGrid.is, OcVaadinGrid);
+    </script>
+</dom-module>
