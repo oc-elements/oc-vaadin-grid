@@ -5,7 +5,7 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
     "vaadin-grid": "^4.1.0",
-    "vaadin-valo-theme": "^0.3.2"
+    "vaadin-valo-theme": "vaadin/vaadin-valo-theme#2.0.0-alpha5"
   },
   "devDependencies": {
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
