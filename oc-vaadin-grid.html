@@ -1,4 +1,7 @@
 <link rel="import" href="/bower_components/polymer/polymer-element.html">
+<link rel="import" href="/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="/bower_components/iron-icons/maps-icons.html">
 <link rel="import" href="/bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import" href="/bower_components/vaadin-grid/vaadin-grid-column-group.html">s
 <link rel="import" href="/bower_components/vaadin-grid/vaadin-grid-filter.html">
@@ -10,36 +13,55 @@
         <style>
             vaadin-grid {
                 height: auto;
+                width: 100%;
                 font: 500 13px "Open Sans", sans-serif;
                 color: rgb(148, 154, 171);
             }
         </style>
-        <template is="dom-if" if="{{!_isDataObjectEmpty}}">
-            <vaadin-grid theme="row-stripes column-dividers" class="my-grid" items="[[dataObject]]">
+        <template id="gridTemplate" is="dom-if" if="{{!_isDataObjectEmpty}}">
+            <vaadin-grid id="vaadinGrid" theme="row-stripes column-dividers" class="my-grid" items="[[dataObject]]"
+                         active-item="{{activeItem}}" column-reordering-allowed>
+                <!-- Row number column -->
                 <vaadin-grid-column width="50px" flex-grow="0">
                     <template class="header">#</template>
                     <template>[[index]]</template>
                 </vaadin-grid-column>
+                <!-- Creating of column -->
                 <template is="dom-repeat" items="[[_columns]]" as="column">
-                    <vaadin-grid-column-group>
-                        <template is="dom-if" if="[[showFilters]]">
-                            <template class="header">
-                                <vaadin-grid-filter aria-label="[[column.name]]" path="[[column.key]]"
-                                                    value="[[column.filter]]">
-                                    <input placeholder="Filter" slot="filter" value="{{column.filter::input}}"
-                                           focus-target>
-                                </vaadin-grid-filter>
+                    <!-- Check if there is any columns we want hidden -->
+                    <template is="dom-if" if="[[_isHiddenColumn(column.key)]]">
+                        <vaadin-grid-column-group>
+                            <!-- Basic text filters -->
+                            <template is="dom-if" if="[[showFilters]]">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="[[column.name]]" path="[[column.key]]"
+                                                        value="[[column.filter]]">
+                                        <input placeholder="Filter" slot="filter" value="{{column.filter::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
                             </template>
+                            <vaadin-grid-column flex-grow="3">
+                                <template class="header">
+                                    <vaadin-grid-sorter path="[[column.key]]">
+                                        [[column.name]]
+                                    </vaadin-grid-sorter>
+                                </template>
+                                <template>[[get(column.key, item)]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                    </template>
+                </template>
+                <!-- Creating of additional columns -->
+                <template is="dom-if" if="[[canDelete]]">
+                    <vaadin-grid-column flex-grow="1">
+                        <template class="header">Remove Record</template>
+                        <template>
+                            <paper-button on-click="_onRowDelete">
+                                <iron-icon icon="delete"></iron-icon>
+                            </paper-button>
                         </template>
-                        <vaadin-grid-column>
-                            <template class="header">
-                                <vaadin-grid-sorter path="[[column.key]]">
-                                    [[column.name]]
-                                </vaadin-grid-sorter>
-                            </template>
-                            <template>[[get(column.key, item)]]</template>
-                        </vaadin-grid-column>
-                    </vaadin-grid-column-group>
+                    </vaadin-grid-column>
                 </template>
             </vaadin-grid>
         </template>
@@ -52,6 +74,7 @@
 
 			static get properties() {
 				return {
+					// Element paramenters
 					dataObject: {
 						type: Array,
 						value: [],
@@ -61,6 +84,17 @@
 						type: Boolean,
 						value: true,
 					},
+					// The idea is that the parent element observe on this parameter
+					onRecordDelete: {
+						type: Object,
+						notify: true,
+					},
+					// Enable delete button in grid or not
+					canDelete: {
+						type: Boolean,
+					},
+
+					// Private members
 					_columns: {
 						type: Array,
 						value: [],
@@ -68,8 +102,8 @@
 					_isDataObjectEmpty: {
 						type: Boolean,
 						value: true,
-					}
-				}
+					},
+				};
 			}
 
 			ready() {
@@ -94,6 +128,17 @@
 					name: this._camelCaseToString(key),
 					filter: ""
 				}));
+			}
+
+			// This is basic is hidden column check. This might expand at a later stage
+			_isHiddenColumn(columnKey) {
+				const hiddenColumn = "id";
+				return columnKey !== hiddenColumn;
+			}
+
+			// Set the record that was clicked for deletion
+			_onRowDelete(e) {
+				this.onRecordDelete = e.model.item;
 			}
 		}
 
