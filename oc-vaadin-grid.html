@@ -19,7 +19,8 @@
             }
         </style>
         <template id="gridTemplate" is="dom-if" if="{{!_isDataObjectEmpty}}">
-            <vaadin-grid id="vaadinGrid" theme="row-stripes column-dividers" class="my-grid" items="[[dataObject]]"
+            <vaadin-grid id="vaadinGrid" theme="row-stripes column-dividers" class="my-grid"
+                         items="[[dataObject.records]]"
                          active-item="{{activeItem}}" column-reordering-allowed>
                 <!-- Row number column -->
                 <vaadin-grid-column width="50px" flex-grow="0">
@@ -69,15 +70,15 @@
     <script>
 		class OcVaadinGrid extends Polymer.Element {
 			static get is() {
-				return 'oc-vaadin-grid'
+				return 'oc-vaadin-grid';
 			}
 
 			static get properties() {
 				return {
 					// Element paramenters
 					dataObject: {
-						type: Array,
-						value: [],
+						type: Object,
+						value: {},
 						observer: '_setColumns',
 					},
 					showFilters: {
@@ -111,34 +112,56 @@
 			}
 
 			_camelCaseToString(text) {
-				const result = text.replace(/([A-Z])/g, " $1");
+				const result = text.replace(/([A-Z])/g, ' $1');
 				return result.charAt(0).toUpperCase() + result.slice(1);
 			}
 
+			_buildColumn(key) {
+
+				/* Exclude fields that is in the `hiddenFields` properties*/
+				for (let i = 0; i < this.dataObject.hiddenFields.length; i++) {
+					if (key === this.dataObject.hiddenFields[i])
+						return
+				}
+
+				const column = {
+					key: key,
+					name: this._camelCaseToString(key),
+					filter: '',
+				};
+
+				return column;
+			}
+
 			_setColumns(dataObject) {
+				if (!dataObject.records) dataObject.records = [] ;
 				// We can assume all object items has identical keys
-				const dataItem = dataObject[0];
+				const dataItem = dataObject.records[0];
 				if (!dataItem) {
 					this._isDataObjectEmpty = true;
 					return;
 				}
 				this._isDataObjectEmpty = false;
-				this._columns = Object.keys(dataItem).map(key => ({
-					key: key,
-					name: this._camelCaseToString(key),
-					filter: ""
-				}));
+				this._columns = Object.keys(dataItem).map(key => {
+
+					return this._buildColumn(key);
+				});
 			}
 
 			// This is basic is hidden column check. This might expand at a later stage
 			_isHiddenColumn(columnKey) {
-				const hiddenColumn = "id";
+				const hiddenColumn = 'id';
 				return columnKey !== hiddenColumn;
 			}
 
 			// Set the record that was clicked for deletion
 			_onRowDelete(e) {
 				this.onRecordDelete = e.model.item;
+
+				this.dispatchEvent(new CustomEvent('on-record-delete', {
+					bubbles: true, composed: true, detail: {record: e.model.item},
+				}));
+
 			}
 		}
 
