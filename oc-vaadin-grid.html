@@ -116,13 +116,19 @@
 				return result.charAt(0).toUpperCase() + result.slice(1);
 			}
 
-			_buildColumn(key) {
-
+			_isHiddenField(key) {
+				if (!this.dataObject.hiddenFields) return;
 				/* Exclude fields that is in the `hiddenFields` properties*/
 				for (let i = 0; i < this.dataObject.hiddenFields.length; i++) {
 					if (key === this.dataObject.hiddenFields[i])
-						return
+						return true
 				}
+			}
+
+
+			_buildColumn(key) {
+
+				if (this._isHiddenField(key)) return;
 
 				const column = {
 					key: key,
